@@ -1,0 +1,23 @@
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+
+# Cache de pruebas
+.pytest_cache/
+.coverage
+
+# Editores
+.vscode/
+.idea/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Datos personales del usuario (tu propio vocabulario no se sube a GitHub)
+data/deck.json
