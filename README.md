@@ -10,12 +10,36 @@ la última vez.
 
 **Fase 1 - Completada:** algoritmo SM-2 + interfaz de consola (CLI).
 
+**Fase 2 - Completada:** API REST con Flask, base de datos, y autenticación
+(reutilizando el mismo algoritmo SM-2 de la Fase 1 sin modificarlo).
+
 Próximas fases planeadas:
 
-- [ ] Convertir en API REST (reutilizando patrones de mi otro proyecto: Flask + PostgreSQL + JWT)
+- [ ] Migrar a PostgreSQL + CI/CD (igual que en mi proyecto anterior)
 - [ ] Estadísticas de progreso (palabras dominadas, racha de días estudiando)
 - [ ] App móvil en Flutter
 - [ ] Notificaciones push recordando repasar
+
+## 🏗️ Arquitectura del proyecto
+
+```
+vocab-trainer/
+├── core/              -> el algoritmo SM-2, sin depender de nada externo
+│   ├── card.py
+│   ├── scheduler.py
+│   └── deck.py
+├── cli.py             -> interfaz de consola (usa core/ directamente)
+├── app/               -> interfaz de API REST (también usa core/)
+│   ├── main.py
+│   ├── models.py
+│   ├── card_manager.py
+│   └── user_manager.py
+└── tests/
+```
+
+La idea clave: **el algoritmo (`core/`) no sabe nada de Flask, bases de
+datos, ni consola.** Por eso se pudo reutilizar tal cual al pasar de CLI
+a API, sin tocarle una línea.
 
 ## 📦 Instalación
 
@@ -29,18 +53,20 @@ pip install -r requirements.txt
 
 ## ▶️ Cómo usarlo
 
+**Opción A: por consola**
+
 ```bash
 python cli.py
 ```
 
-Vas a ver un menú para:
+**Opción B: como API**
 
-1. Agregar palabras nuevas (inglés -> español)
-2. Repasar las palabras que ya toca ver hoy
-3. Ver todas tus palabras y su próxima fecha de repaso
-4. Salir (guarda tu progreso automáticamente)
+```bash
+python -m app.main
+```
 
-Tu vocabulario se guarda en `data/deck.json` (no se sube a GitHub, es tu progreso personal).
+Endpoints: `POST /register`, `POST /login`, `GET /cards`, `GET /cards/due`,
+`POST /cards`, `POST /cards/<id>/review` (body: `{"quality": 0-5}`).
 
 ## 🧠 Cómo funciona el algoritmo (SM-2)
 
