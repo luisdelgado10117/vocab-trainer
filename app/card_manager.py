@@ -19,7 +19,7 @@ from datetime import date
 from sqlalchemy.orm import Session
 
 from app.errors import CardNotFoundError, InvalidCardDataError
-from app.models import Card
+from app.models import Card, ReviewLog
 from core.card import Card as CoreCard
 from core.scheduler import review_card
 
@@ -91,6 +91,16 @@ class CardManager:
         db_card.easiness_factor = core_card.easiness_factor
         db_card.interval = core_card.interval
         db_card.due_date = core_card.due_date
+
+        # Registramos este repaso en el historial, para poder calcular
+        # estadísticas después (rachas, repasos por día, etc).
+        log_entry = ReviewLog(
+            user_id=user_id,
+            card_id=db_card.id,
+            quality=quality,
+            reviewed_on=date.today(),
+        )
+        self.db.add(log_entry)
 
         self.db.commit()
         self.db.refresh(db_card)

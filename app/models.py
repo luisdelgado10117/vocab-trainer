@@ -46,3 +46,21 @@ class Card(Base):
             "interval": self.interval,
             "due_date": self.due_date.isoformat(),
         }
+
+
+class ReviewLog(Base):
+    """Registra CADA repaso que se hace, para poder calcular estadísticas
+    después (rachas de días, cuántas tarjetas repasaste hoy, etc).
+
+    Nota que Card solo guarda el ESTADO ACTUAL de una tarjeta (no su
+    historia), así que sin esta tabla no habría forma de saber en qué
+    días estudiaste en el pasado.
+    """
+
+    __tablename__ = "review_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    card_id = Column(Integer, ForeignKey("cards.id"), nullable=False)
+    quality = Column(Integer, nullable=False)
+    reviewed_on = Column(Date, nullable=False)

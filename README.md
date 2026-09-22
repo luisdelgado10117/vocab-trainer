@@ -13,8 +13,13 @@ la última vez.
 **Fase 2 - Completada:** API REST con Flask, base de datos, y autenticación
 (reutilizando el mismo algoritmo SM-2 de la Fase 1 sin modificarlo).
 
-Próximas fases planeadas:
+**Estadísticas de progreso - Completado:**
+- [x] Racha de días de estudio (actual y la más larga histórica)
+- [x] Conteo de tarjetas "dominadas" (intervalo ≥ 21 días, convención de Anki)
+- [x] Tarjetas repasadas hoy
+- [x] Endpoint `GET /stats`
 
+Próximas fases planeadas:
 - [ ] Migrar a PostgreSQL + CI/CD (igual que en mi proyecto anterior)
 - [ ] Estadísticas de progreso (palabras dominadas, racha de días estudiando)
 - [ ] App móvil en Flutter
@@ -54,19 +59,17 @@ pip install -r requirements.txt
 ## ▶️ Cómo usarlo
 
 **Opción A: por consola**
-
 ```bash
 python cli.py
 ```
 
 **Opción B: como API**
-
 ```bash
 python -m app.main
 ```
-
 Endpoints: `POST /register`, `POST /login`, `GET /cards`, `GET /cards/due`,
-`POST /cards`, `POST /cards/<id>/review` (body: `{"quality": 0-5}`).
+`POST /cards`, `POST /cards/<id>/review` (body: `{"quality": 0-5}`),
+`GET /stats`.
 
 ## 🧠 Cómo funciona el algoritmo (SM-2)
 

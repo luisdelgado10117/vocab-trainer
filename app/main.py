@@ -25,6 +25,7 @@ from app.errors import (
     InvalidUserDataError,
     UserAlreadyExistsError,
 )
+from app.stats_manager import StatsManager
 from app.user_manager import UserManager
 
 app = Flask(__name__)
@@ -38,6 +39,10 @@ def get_card_manager() -> CardManager:
 
 def get_user_manager() -> UserManager:
     return UserManager(SessionLocal())
+
+
+def get_stats_manager() -> StatsManager:
+    return StatsManager(SessionLocal())
 
 
 def require_auth(view_function):
@@ -151,6 +156,16 @@ def review_card_route(card_id: int):
         return jsonify({"error": str(e)}), 404
     except InvalidCardDataError as e:
         return jsonify({"error": str(e)}), 400
+
+
+# --- Estadísticas de progreso ---
+
+
+@app.get("/stats")
+@require_auth
+def get_stats():
+    manager = get_stats_manager()
+    return jsonify(manager.get_stats(g.user_id))
 
 
 if __name__ == "__main__":
