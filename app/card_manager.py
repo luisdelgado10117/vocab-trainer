@@ -49,7 +49,7 @@ class CardManager:
             raise CardNotFoundError(f"No existe una tarjeta con id {card_id}")
         return card
 
-    def create(self, word, translation, user_id: int) -> Card:
+    def create(self, word, translation, user_id: int, group=None, tense=None) -> Card:
         self._validate_text(word, "word")
         self._validate_text(translation, "translation")
 
@@ -58,11 +58,73 @@ class CardManager:
             translation=translation.strip(),
             due_date=date.today(),
             user_id=user_id,
+            group=group,
+            tense=tense,
         )
         self.db.add(card)
         self.db.commit()
         self.db.refresh(card)
         return card
+
+    def import_seed_pack(self, user_id: int, pack: list[dict]) -> list[Card]:
+        """Importa un paquete de vocabulario predefinido a la cuenta del usuario.
+
+        No duplica tarjetas: si el usuario ya importó este paquete antes
+        (o ya tiene manualmente la misma palabra+traducción), esas entradas
+        se saltan.
+        """
+        existing = self.db.query(Card).filter(Card.user_id == user_id).all()
+        existing_pairs = {(c.word, c.translation) for c in existing}
+
+        created_cards = []
+        for entry in pack:
+            key = (entry["word"], entry["translation"])
+            if key in existing_pairs:
+                continue
+
+            card = Card(
+                word=entry["word"],
+                translation=entry["translation"],
+                due_date=date.today(),
+                user_id=user_id,
+                group=entry.get("group"),
+                tense=entry.get("tense"),
+            )
+            self.db.add(card)
+            created_cards.append(card)
+            existing_pairs.add(key)  # evita duplicados dentro del mismo pack
+
+        self.db.commit()
+        for card in created_cards:
+            self.db.refresh(card)
+
+        return created_cards
+
+    def get_grouped(self, user_id: int) -> dict:
+        """Agrupa las tarjetas por verbo (campo 'group'), para mostrarlas
+        juntas en la app en vez de como una lista plana.
+
+        Las tarjetas sin grupo (palabras sueltas que el usuario agregó a
+        mano) se devuelven aparte, en 'ungrouped'.
+        """
+        cards = self.get_all(user_id)
+
+        groups: dict[str, list[Card]] = {}
+        ungrouped: list[Card] = []
+
+        for card in cards:
+            if card.group:
+                groups.setdefault(card.group, []).append(card)
+            else:
+                ungrouped.append(card)
+
+        return {
+            "groups": [
+                {"group": group_name, "forms": [c.to_dict() for c in forms]}
+                for group_name, forms in groups.items()
+            ],
+            "ungrouped": [c.to_dict() for c in ungrouped],
+        }
 
     def submit_review(self, card_id: int, user_id: int, quality) -> Card:
         """Aplica una calificación de repaso a una tarjeta, usando el algoritmo SM-2."""

@@ -26,11 +26,18 @@ from app.errors import (
     UserAlreadyExistsError,
 )
 from app.stats_manager import StatsManager
+from app.seed_data import IRREGULAR_VERBS_PACK
 from app.user_manager import UserManager
 
 app = Flask(__name__)
 
 init_db()
+
+
+@app.get("/")
+def health_check():
+    """Ruta simple para probar que la API es alcanzable desde tu celular."""
+    return jsonify({"status": "ok", "message": "La API esta funcionando"})
 
 
 def get_card_manager() -> CardManager:
@@ -126,6 +133,15 @@ def get_due_cards():
     return jsonify([c.to_dict() for c in cards])
 
 
+@app.get("/cards/grouped")
+@require_auth
+def get_grouped_cards():
+    """Devuelve las tarjetas agrupadas por verbo (para la pantalla de
+    'Mi vocabulario' en la app, en vez de una lista plana)."""
+    manager = get_card_manager()
+    return jsonify(manager.get_grouped(g.user_id))
+
+
 @app.post("/cards")
 @require_auth
 def create_card():
@@ -158,6 +174,23 @@ def review_card_route(card_id: int):
         return jsonify({"error": str(e)}), 400
 
 
+@app.post("/cards/seed")
+@require_auth
+def import_seed_pack():
+    """Importa el paquete de vocabulario inicial (verbos irregulares comunes)."""
+    manager = get_card_manager()
+    created = manager.import_seed_pack(g.user_id, IRREGULAR_VERBS_PACK)
+    return (
+        jsonify(
+            {
+                "imported": len(created),
+                "cards": [c.to_dict() for c in created],
+            }
+        ),
+        201,
+    )
+
+
 # --- Estadísticas de progreso ---
 
 
@@ -169,4 +202,7 @@ def get_stats():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # host="0.0.0.0" hace que la API escuche en TODAS las interfaces de red
+    # de tu computadora (no solo en 127.0.0.1), para que tu celular pueda
+    # alcanzarla estando en la misma red WiFi.
+    app.run(host="0.0.0.0", port=5000, debug=True)

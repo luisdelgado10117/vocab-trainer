@@ -33,6 +33,13 @@ class Card(Base):
     interval = Column(Integer, default=0, nullable=False)
     due_date = Column(Date, nullable=False)
 
+    # Agrupa formas del mismo verbo (ej. "go") y distingue cual es cual
+    # (ej. "infinitivo", "pasado", "participio"). Ambos son opcionales:
+    # una palabra creada manualmente por el usuario no pertenece a ningun
+    # grupo, y eso esta bien.
+    group = Column(String, nullable=True)
+    tense = Column(String, nullable=True)
+
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     owner = relationship("User", back_populates="cards")
 
@@ -45,6 +52,8 @@ class Card(Base):
             "easiness_factor": self.easiness_factor,
             "interval": self.interval,
             "due_date": self.due_date.isoformat(),
+            "group": self.group,
+            "tense": self.tense,
         }
 
 
