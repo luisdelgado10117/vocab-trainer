@@ -19,6 +19,12 @@ class User(Base):
     username = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=False)
 
+    # Token que identifica el dispositivo movil de este usuario ante
+    # Firebase Cloud Messaging. Se necesita para poder enviarle una
+    # notificacion push. Nullable porque no todo usuario tiene la app
+    # movil conectada (o pudo negar el permiso de notificaciones).
+    fcm_token = Column(String, nullable=True)
+
     cards = relationship("Card", back_populates="owner", cascade="all, delete-orphan")
 
 

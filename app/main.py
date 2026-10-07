@@ -28,6 +28,8 @@ from app.errors import (
 from app.stats_manager import StatsManager
 from app.seed_data import IRREGULAR_VERBS_PACK
 from app.user_manager import UserManager
+from app.models import User
+from app.notifications import send_notification
 
 app = Flask(__name__)
 
@@ -114,6 +116,56 @@ def login():
         return jsonify({"error": str(e)}), 401
 
 
+@app.post("/device-token")
+@require_auth
+def register_device_token():
+    """Guarda el token de FCM del celular del usuario, para poder
+    enviarle notificaciones push mas adelante."""
+    data = request.get_json(silent=True) or {}
+    token = data.get("token")
+
+    if not isinstance(token, str) or not token.strip():
+        return jsonify({"error": "El campo 'token' es obligatorio"}), 400
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == g.user_id).first()
+    user.fcm_token = token.strip()
+    db.commit()
+
+    return jsonify({"message": "Token guardado correctamente"}), 200
+
+
+@app.post("/notifications/test")
+@require_auth
+def send_test_notification():
+    """Envia una notificacion de prueba al dispositivo del usuario actual.
+    Sirve para confirmar que todo el flujo (Firebase + token + backend)
+    funciona de punta a punta antes de automatizar recordatorios reales."""
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == g.user_id).first()
+
+    if not user.fcm_token:
+        return (
+            jsonify(
+                {"error": "Este usuario no tiene un dispositivo registrado todavia"}
+            ),
+            400,
+        )
+
+    try:
+        message_id = send_notification(
+            user.fcm_token,
+            title="Entrenador de vocabulario",
+            body="Esta es una notificacion de prueba. Si la ves, todo funciona!",
+        )
+        return (
+            jsonify({"message": "Notificacion enviada", "message_id": message_id}),
+            200,
+        )
+    except Exception as e:
+        return jsonify({"error": f"Error al enviar la notificacion: {e}"}), 500
+
+
 # --- Tarjetas de vocabulario ---
 
 
@@ -177,7 +229,13 @@ def review_card_route(card_id: int):
 @app.post("/cards/seed")
 @require_auth
 def import_seed_pack():
-    """Importa el paquete de vocabulario inicial (verbos irregulares comunes)."""
+    """Importa (o sincroniza) todos los paquetes de vocabulario predefinidos.
+
+    Es seguro llamarlo varias veces: nunca duplica. Por eso el cliente
+    (la app) lo puede llamar en cada login sin preguntar - si en el
+    futuro agregamos una categoría nueva (ej. sustantivos), los usuarios
+    que ya tenían cuenta la reciben automáticamente en su siguiente login.
+    """
     manager = get_card_manager()
     created = manager.import_seed_pack(g.user_id, IRREGULAR_VERBS_PACK)
     return (

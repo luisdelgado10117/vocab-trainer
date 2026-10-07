@@ -19,5 +19,12 @@ __pycache__/
 .DS_Store
 Thumbs.db
 
-# Datos personales del usuario (tu propio vocabulario no se sube a GitHub)
+# Bases de datos locales (la API usa esta)
+*.db
+*.sqlite3
+
+# Progreso de vocabulario guardado por la version CLI
 data/deck.json
+
+# Clave de administrador de Firebase - NUNCA se sube a git
+firebase-service-account.json
