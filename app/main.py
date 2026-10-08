@@ -10,6 +10,7 @@ Endpoints:
     POST   /cards/<id>/review    -> aplica una calificación de repaso {quality: 0-5}
 """
 
+import os
 from functools import wraps
 
 import jwt
@@ -25,15 +26,24 @@ from app.errors import (
     InvalidUserDataError,
     UserAlreadyExistsError,
 )
+from app.reminder_service import send_daily_reminders
+from app.scheduler import start_scheduler
 from app.stats_manager import StatsManager
 from app.seed_data import IRREGULAR_VERBS_PACK
 from app.user_manager import UserManager
 from app.models import User
 from app.notifications import send_notification
 
+# Secreto compartido para poder disparar el job de recordatorios "a mano"
+# (desde curl, o mas adelante desde un servicio externo de cron una vez
+# que la API este desplegada). NO requiere login de usuario, pero SI
+# requiere conocer este secreto.
+CRON_SECRET = os.environ.get("CRON_SECRET", "cambia-este-secreto-en-produccion")
+
 app = Flask(__name__)
 
 init_db()
+start_scheduler()
 
 
 @app.get("/")
@@ -164,6 +174,26 @@ def send_test_notification():
         )
     except Exception as e:
         return jsonify({"error": f"Error al enviar la notificacion: {e}"}), 500
+
+
+@app.post("/notifications/run-daily-check")
+def run_daily_check():
+    """Dispara manualmente la revision de recordatorios diarios.
+
+    Protegido con un secreto compartido (header X-Cron-Secret), NO con
+    login de un usuario especifico - revisa a TODOS los usuarios. Util
+    para probar sin esperar a la hora programada, y mas adelante para
+    conectarlo a un servicio externo de cron cuando la API este desplegada.
+    """
+    secret = request.headers.get("X-Cron-Secret")
+    if secret != CRON_SECRET:
+        return jsonify({"error": "No autorizado"}), 403
+
+    db = SessionLocal()
+    sent = send_daily_reminders(db)
+    db.close()
+
+    return jsonify({"message": f"Se enviaron {sent} notificacion(es)"}), 200
 
 
 # --- Tarjetas de vocabulario ---

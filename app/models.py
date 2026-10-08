@@ -25,6 +25,10 @@ class User(Base):
     # movil conectada (o pudo negar el permiso de notificaciones).
     fcm_token = Column(String, nullable=True)
 
+    # Ultimo dia en que se le envio un recordatorio automatico. Evita
+    # mandarle 2 notificaciones el mismo dia si el job se vuelve a correr.
+    last_reminded_on = Column(Date, nullable=True)
+
     cards = relationship("Card", back_populates="owner", cascade="all, delete-orphan")
 
 
