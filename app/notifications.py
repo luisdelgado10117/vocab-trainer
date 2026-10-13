@@ -10,6 +10,7 @@ ESTE ARCHIVO NUNCA SE SUBE A GIT - da acceso administrativo completo a
 tu proyecto de Firebase. Por eso su nombre está en .gitignore.
 """
 
+import json
 import os
 
 import firebase_admin
@@ -19,7 +20,17 @@ CREDENTIALS_PATH = os.environ.get(
     "FIREBASE_CREDENTIALS_PATH", "firebase-service-account.json"
 )
 
+# En la nube no puedes subir el archivo JSON a git, así que se acepta también
+# su CONTENIDO COMPLETO en la variable FIREBASE_CREDENTIALS_JSON.
+CREDENTIALS_JSON = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+
 _firebase_app = None
+
+
+def _load_credentials():
+    if CREDENTIALS_JSON:
+        return credentials.Certificate(json.loads(CREDENTIALS_JSON))
+    return credentials.Certificate(CREDENTIALS_PATH)
 
 
 def _get_firebase_app():
@@ -31,8 +42,7 @@ def _get_firebase_app():
     global _firebase_app
 
     if _firebase_app is None:
-        cred = credentials.Certificate(CREDENTIALS_PATH)
-        _firebase_app = firebase_admin.initialize_app(cred)
+        _firebase_app = firebase_admin.initialize_app(_load_credentials())
 
     return _firebase_app
 

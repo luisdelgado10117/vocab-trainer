@@ -108,3 +108,33 @@ python -m pytest
 - Usar `@dataclass` para clases que solo almacenan datos.
 - Serializar y deserializar objetos propios a/desde JSON (`to_dict` / `from_dict`).
 - Escribir pruebas que verifican reglas matemáticas/lógicas precisas, no solo "que no truene".
+
+## ☁️ Despliegue (Render + Neon)
+
+La API corre en Render (servicio web) con base de datos PostgreSQL en Neon.
+El mismo código funciona en local con SQLite: solo cambia `DATABASE_URL`.
+
+**Comando de inicio:** `gunicorn app.main:app --workers 1 --timeout 120`
+
+### Variables de entorno
+
+| Variable                            | Obligatoria en producción | Para qué sirve                                                         |
+| ----------------------------------- | :-----------------------: | ---------------------------------------------------------------------- |
+| `APP_ENV`                           |     Sí (`production`)     | Activa los chequeos de seguridad al arrancar                           |
+| `DATABASE_URL`                      |            Sí             | Cadena de conexión de PostgreSQL (Neon)                                |
+| `SECRET_KEY`                        |            Sí             | Firma de los tokens JWT. Sin ella la app no arranca en producción      |
+| `CRON_SECRET`                       |            Sí             | Protege `POST /notifications/run-daily-check` (header `X-Cron-Secret`) |
+| `FIREBASE_CREDENTIALS_JSON`         |            Sí             | Contenido completo de la clave de cuenta de servicio de Firebase       |
+| `ENABLE_SCHEDULER`                  |       Sí (`false`)        | Apaga el scheduler interno; un cron externo lo reemplaza               |
+| `REMINDER_HOUR` / `REMINDER_MINUTE` |            No             | Hora del recordatorio con el scheduler interno (solo desarrollo)       |
+
+### Decisiones de diseño
+
+- **Recordatorios con cron externo:** el plan gratuito duerme el servidor tras
+  15 min sin tráfico, y un servidor dormido no ejecuta jobs internos. Un cron
+  externo llama al endpoint protegido; como el envío es idempotente
+  (`last_reminded_on`), repetir la llamada el mismo día no duplica avisos.
+- **Fallar rápido:** con `APP_ENV=production`, la app se niega a arrancar si
+  `SECRET_KEY` o `CRON_SECRET` conservan su valor de desarrollo.
+- **Base de datos fuera del servidor web:** el disco del plan gratuito se borra
+  en cada reinicio, por eso no se usa SQLite en producción.

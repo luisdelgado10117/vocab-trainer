@@ -38,7 +38,11 @@ from app.notifications import send_notification
 # (desde curl, o mas adelante desde un servicio externo de cron una vez
 # que la API este desplegada). NO requiere login de usuario, pero SI
 # requiere conocer este secreto.
-CRON_SECRET = os.environ.get("CRON_SECRET", "cambia-este-secreto-en-produccion")
+DEFAULT_CRON_SECRET = "cambia-este-secreto-en-produccion"
+CRON_SECRET = os.environ.get("CRON_SECRET", DEFAULT_CRON_SECRET)
+
+if os.environ.get("APP_ENV") == "production" and CRON_SECRET == DEFAULT_CRON_SECRET:
+    raise RuntimeError("En produccion debes definir la variable de entorno CRON_SECRET")
 
 app = Flask(__name__)
 

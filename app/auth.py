@@ -9,7 +9,14 @@ import os
 import jwt
 from werkzeug.security import check_password_hash, generate_password_hash
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "clave-secreta-de-desarrollo-cambiame")
+DEFAULT_DEV_SECRET = "clave-secreta-de-desarrollo-cambiame"
+SECRET_KEY = os.environ.get("SECRET_KEY", DEFAULT_DEV_SECRET)
+
+# "Fallar rápido": si olvidas configurar SECRET_KEY en producción, es mejor
+# que la app NO arranque a que arranque con una clave pública que permitiría
+# a cualquiera fabricar tokens de sesión válidos.
+if os.environ.get("APP_ENV") == "production" and SECRET_KEY == DEFAULT_DEV_SECRET:
+    raise RuntimeError("En produccion debes definir la variable de entorno SECRET_KEY")
 TOKEN_EXP_HOURS = 24
 
 

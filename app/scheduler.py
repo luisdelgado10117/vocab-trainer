@@ -40,6 +40,13 @@ def start_scheduler():
     """
     global _scheduler
 
+    # En el plan gratuito de la nube el servidor se duerme tras 15 min sin
+    # tráfico, y un servidor dormido no ejecuta jobs internos. Por eso en
+    # producción se pone ENABLE_SCHEDULER=false y un cron externo llama al
+    # endpoint /notifications/run-daily-check.
+    if os.environ.get("ENABLE_SCHEDULER", "true").lower() != "true":
+        return
+
     if _scheduler is not None:
         return
 
