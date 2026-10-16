@@ -44,15 +44,17 @@ def test_agrupa_por_verbo(client, auth_headers):
     data = response.get_json()
 
     assert response.status_code == 200
-    assert len(data["groups"]) == 15  # 15 verbos en el paquete
+    assert len(data["groups"]) == 21  # temporal: 15 irregulares + 6 nuevos de phrasal
 
     go_group = next(g for g in data["groups"] if g["group"] == "go")
-    assert len(go_group["forms"]) == 3  # infinitivo, pasado, participio
+    assert len(go_group["forms"]) == 6  # temporal: 3 irregulares + 3 phrasal mezclados
 
 
 def test_palabra_manual_va_en_ungrouped(client, auth_headers):
     client.post(
-        "/cards", json={"word": "keyboard", "translation": "teclado"}, headers=auth_headers
+        "/cards",
+        json={"word": "keyboard", "translation": "teclado"},
+        headers=auth_headers,
     )
 
     response = client.get("/cards/grouped", headers=auth_headers)

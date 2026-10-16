@@ -11,7 +11,9 @@ import pytest
 from app.database import SessionLocal, init_db
 from app.models import Card, ReviewLog, User
 from app.main import app
-from app.seed_data import IRREGULAR_VERBS_PACK
+from app.seed_data import SEED_PACKS
+
+TOTAL_CARDS = sum(len(pack) for pack in SEED_PACKS.values())
 
 
 @pytest.fixture
@@ -41,7 +43,7 @@ def auth_headers(client):
 def test_importar_paquete(client, auth_headers):
     response = client.post("/cards/seed", headers=auth_headers)
     assert response.status_code == 201
-    assert response.get_json()["imported"] == len(IRREGULAR_VERBS_PACK)
+    assert response.get_json()["imported"] == TOTAL_CARDS
 
 
 def test_importar_paquete_dos_veces_no_duplica(client, auth_headers):
@@ -51,7 +53,7 @@ def test_importar_paquete_dos_veces_no_duplica(client, auth_headers):
     assert response.get_json()["imported"] == 0
 
     cards_response = client.get("/cards", headers=auth_headers)
-    assert len(cards_response.get_json()) == len(IRREGULAR_VERBS_PACK)
+    assert len(cards_response.get_json()) == TOTAL_CARDS
 
 
 def test_importar_paquete_requiere_auth(client):
@@ -63,4 +65,4 @@ def test_paquete_importado_esta_pendiente_hoy(client, auth_headers):
     client.post("/cards/seed", headers=auth_headers)
 
     response = client.get("/cards/due", headers=auth_headers)
-    assert len(response.get_json()) == len(IRREGULAR_VERBS_PACK)
+    assert len(response.get_json()) == TOTAL_CARDS

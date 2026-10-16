@@ -168,3 +168,136 @@ IRREGULAR_VERBS_PACK = [
     },
     {"word": "felt", "translation": "sentido", "group": "feel", "tense": "participio"},
 ]
+
+# Se llena en el paso 3 (30 phrasal verbs). Cada entrada usa:
+# word = "give up", translation = "rendirse", group = "give", tense = None
+PHRASAL_VERBS_PACK = [
+    # give
+    {
+        "word": "give up",
+        "translation": "rendirse / dejar de",
+        "group": "give",
+        "tense": None,
+    },
+    {"word": "give in", "translation": "ceder", "group": "give", "tense": None},
+    {
+        "word": "give away",
+        "translation": "regalar / revelar",
+        "group": "give",
+        "tense": None,
+    },
+    # get
+    {"word": "get up", "translation": "levantarse", "group": "get", "tense": None},
+    {
+        "word": "get along",
+        "translation": "llevarse bien",
+        "group": "get",
+        "tense": None,
+    },
+    {"word": "get over", "translation": "superar", "group": "get", "tense": None},
+    # look
+    {"word": "look for", "translation": "buscar", "group": "look", "tense": None},
+    {"word": "look after", "translation": "cuidar", "group": "look", "tense": None},
+    {
+        "word": "look up",
+        "translation": "buscar (en un diccionario)",
+        "group": "look",
+        "tense": None,
+    },
+    # turn
+    {"word": "turn on", "translation": "encender", "group": "turn", "tense": None},
+    {"word": "turn off", "translation": "apagar", "group": "turn", "tense": None},
+    {
+        "word": "turn down",
+        "translation": "rechazar / bajar el volumen",
+        "group": "turn",
+        "tense": None,
+    },
+    # take
+    {
+        "word": "take off",
+        "translation": "despegar / quitarse",
+        "group": "take",
+        "tense": None,
+    },
+    {
+        "word": "take care of",
+        "translation": "encargarse de / cuidar",
+        "group": "take",
+        "tense": None,
+    },
+    {
+        "word": "take over",
+        "translation": "tomar el control",
+        "group": "take",
+        "tense": None,
+    },
+    # put
+    {"word": "put on", "translation": "ponerse (ropa)", "group": "put", "tense": None},
+    {"word": "put off", "translation": "posponer", "group": "put", "tense": None},
+    {"word": "put out", "translation": "apagar (fuego)", "group": "put", "tense": None},
+    # come
+    {"word": "come back", "translation": "regresar", "group": "come", "tense": None},
+    {
+        "word": "come up with",
+        "translation": "idear / se le ocurre",
+        "group": "come",
+        "tense": None,
+    },
+    {
+        "word": "come across",
+        "translation": "encontrarse con",
+        "group": "come",
+        "tense": None,
+    },
+    # go
+    {
+        "word": "go on",
+        "translation": "continuar / suceder",
+        "group": "go",
+        "tense": None,
+    },
+    {"word": "go out", "translation": "salir", "group": "go", "tense": None},
+    {"word": "go back", "translation": "volver", "group": "go", "tense": None},
+    # set
+    {
+        "word": "set up",
+        "translation": "configurar / establecer",
+        "group": "set",
+        "tense": None,
+    },
+    {
+        "word": "set off",
+        "translation": "partir / activar",
+        "group": "set",
+        "tense": None,
+    },
+    # break
+    {
+        "word": "break down",
+        "translation": "averiarse / desglosar",
+        "group": "break",
+        "tense": None,
+    },
+    {
+        "word": "break up",
+        "translation": "terminar (una relación)",
+        "group": "break",
+        "tense": None,
+    },
+    # run
+    {
+        "word": "run out of",
+        "translation": "quedarse sin",
+        "group": "run",
+        "tense": None,
+    },
+    {"word": "run into", "translation": "toparse con", "group": "run", "tense": None},
+]
+
+# Clave = nombre de la categoría (se guarda en Card.category).
+# Para agregar una categoría nueva en el futuro: crear su lista y sumarla aquí.
+SEED_PACKS = {
+    "irregular_verbs": IRREGULAR_VERBS_PACK,
+    "phrasal_verbs": PHRASAL_VERBS_PACK,
+}

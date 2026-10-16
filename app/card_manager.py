@@ -66,20 +66,21 @@ class CardManager:
         self.db.refresh(card)
         return card
 
-    def import_seed_pack(self, user_id: int, pack: list[dict]) -> list[Card]:
-        """Importa un paquete de vocabulario predefinido a la cuenta del usuario.
+    def import_seed_pack(
+        self, user_id: int, pack: list[dict], category: str = "irregular_verbs"
+    ) -> list[Card]:
+        """Importa un paquete de una categoría, sin duplicar tarjetas.
 
-        No duplica tarjetas: si el usuario ya importó este paquete antes
-        (o ya tiene manualmente la misma palabra+traducción), esas entradas
-        se saltan.
+        La clave de duplicado ahora incluye la categoría: así la misma
+        palabra puede existir en dos categorías distintas sin chocar.
         """
         existing = self.db.query(Card).filter(Card.user_id == user_id).all()
-        existing_pairs = {(c.word, c.translation) for c in existing}
+        existing_keys = {(c.word, c.translation, c.category) for c in existing}
 
         created_cards = []
         for entry in pack:
-            key = (entry["word"], entry["translation"])
-            if key in existing_pairs:
+            key = (entry["word"], entry["translation"], category)
+            if key in existing_keys:
                 continue
 
             card = Card(
@@ -89,16 +90,24 @@ class CardManager:
                 user_id=user_id,
                 group=entry.get("group"),
                 tense=entry.get("tense"),
+                category=category,
             )
             self.db.add(card)
             created_cards.append(card)
-            existing_pairs.add(key)  # evita duplicados dentro del mismo pack
+            existing_keys.add(key)
 
         self.db.commit()
         for card in created_cards:
             self.db.refresh(card)
 
         return created_cards
+
+    def import_all_seed_packs(self, user_id: int, packs: dict) -> list[Card]:
+        """Sincroniza todas las categorías. Seguro de llamar varias veces."""
+        created = []
+        for category, pack in packs.items():
+            created.extend(self.import_seed_pack(user_id, pack, category))
+        return created
 
     def get_grouped(self, user_id: int) -> dict:
         """Agrupa las tarjetas por verbo (campo 'group'), para mostrarlas

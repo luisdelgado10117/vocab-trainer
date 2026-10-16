@@ -29,7 +29,7 @@ from app.errors import (
 from app.reminder_service import send_daily_reminders
 from app.scheduler import start_scheduler
 from app.stats_manager import StatsManager
-from app.seed_data import IRREGULAR_VERBS_PACK
+from app.seed_data import SEED_PACKS
 from app.user_manager import UserManager
 from app.models import User
 from app.notifications import send_notification
@@ -271,7 +271,7 @@ def import_seed_pack():
     que ya tenían cuenta la reciben automáticamente en su siguiente login.
     """
     manager = get_card_manager()
-    created = manager.import_seed_pack(g.user_id, IRREGULAR_VERBS_PACK)
+    created = manager.import_all_seed_packs(g.user_id, SEED_PACKS)
     return (
         jsonify(
             {
