@@ -50,6 +50,15 @@ class Card(Base):
     group = Column(String, nullable=True)
     tense = Column(String, nullable=True)
 
+    # Categoría del vocabulario (ej. "irregular_verbs", "phrasal_verbs").
+    # Permite separar secciones en la app sin mezclar significados en
+    # 'group' (verbo base) ni en 'tense' (forma verbal).
+    category = Column(
+        String,
+        nullable=False,
+        default="irregular_verbs",
+        server_default="irregular_verbs",
+    )
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     owner = relationship("User", back_populates="cards")
 
@@ -64,6 +73,7 @@ class Card(Base):
             "due_date": self.due_date.isoformat(),
             "group": self.group,
             "tense": self.tense,
+            "category": self.category,
         }
 
 
